@@ -43,6 +43,7 @@ var grid = []
 var first_touch = Vector2i(-1, -1)
 var is_swapping = false
 var combo_count: int = 0
+var hint_tiles = []
 
 # Functions
 
@@ -58,6 +59,8 @@ func _ready():
 	center_grid_on_screen() 
 	
 	get_viewport().size_changed.connect(center_grid_on_screen)
+	
+	update_hints()
 
 # Centers the board on-screen, the above conection ensures the board is centered after resizing the window
 
@@ -136,6 +139,12 @@ func calculate_swipe(final_pos: Vector2):
 func handle_swap_logic(pos_a: Vector2i, pos_b: Vector2i):
 	
 	is_swapping = true
+	# Clear hints during swap
+	for tile in hint_tiles:
+		if is_instance_valid(tile):
+			tile.set_hint_highlight(false)
+	hint_tiles.clear()
+	
 	swap_pieces(pos_a, pos_b)
 	
 	await get_tree().create_timer(0.3).timeout
@@ -147,6 +156,7 @@ func handle_swap_logic(pos_a: Vector2i, pos_b: Vector2i):
 		Audio.play("res://sounds/tile-swap.ogg", false, 2, 0.3)
 		await get_tree().create_timer(0.3).timeout
 		is_swapping = false
+		update_hints()
 
 func swap_pieces(a: Vector2i, b: Vector2i):
 	
@@ -221,6 +231,7 @@ func process_board_state():
 		matches = find_matches()
 	
 	is_swapping = false
+	update_hints()
 
 func collapse_columns():
 	
@@ -255,6 +266,61 @@ func grid_to_pixel(column: int, row: int) -> Vector2:
 func is_within_grid(pos: Vector2i) -> bool:
 	
 	return pos.x >= 0 and pos.x < width and pos.y >= 0 and pos.y < height
+
+# Hint system
+
+func update_hints():
+	# Clear existing hints
+	for tile in hint_tiles:
+		if is_instance_valid(tile):
+			tile.set_hint_highlight(false)
+	hint_tiles.clear()
+	
+	# Find a possible move
+	var possible_move = find_possible_move()
+	if possible_move:
+		for tile in possible_move:
+			tile.set_hint_highlight(true)
+			hint_tiles.append(tile)
+
+# Find a possible swap that would create a major chord
+func find_possible_move() -> Array:
+	# Check all possible adjacent swaps
+	for x in width:
+		for y in height:
+			var current = grid[x][y]
+			if not current:
+				continue
+			
+			# Check right neighbor
+			if x < width - 1:
+				var right = grid[x+1][y]
+				if right and would_create_match(x, y, x+1, y):
+					return [current, right]
+			
+			# Check bottom neighbor
+			if y < height - 1:
+				var bottom = grid[x][y+1]
+				if bottom and would_create_match(x, y, x, y+1):
+					return [current, bottom]
+	
+	return []
+
+# Check if swapping two positions would create a match
+func would_create_match(x1: int, y1: int, x2: int, y2: int) -> bool:
+	# Temporarily swap
+	var temp = grid[x1][y1]
+	grid[x1][y1] = grid[x2][y2]
+	grid[x2][y2] = temp
+	
+	# Check for matches
+	var has_match = find_matches().size() > 0
+	
+	# Swap back
+	grid[x2][y2] = grid[x1][y1]
+	grid[x1][y1] = temp
+	
+	return has_match
 
 # Utilities
 

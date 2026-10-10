@@ -4,6 +4,7 @@ signal tile_pressed(pos)
 
 var type:String
 var grid_position:Vector2i
+var is_hinted: bool = false
 
 # Highlight tile when hovering mouse
 
@@ -11,7 +12,10 @@ func _on_mouse_entered():
 	
 	var tween = create_tween().set_parallel(true)
 	tween.tween_property($Sprite2D, "scale", Vector2(1.1, 1.1), 0.1)
-	tween.tween_property($Sprite2D, "modulate", Color(1.2, 1.2, 1.2), 0.1) # Brighten
+	if is_hinted:
+		tween.tween_property($Sprite2D, "modulate", Color(1.8, 1.8, 0.8), 0.1) # Brighter yellow
+	else:
+		tween.tween_property($Sprite2D, "modulate", Color(1.2, 1.2, 1.2), 0.1) # Brighten
 
 # Return to default state when mouse exits
 
@@ -19,7 +23,10 @@ func _on_mouse_exited():
 	
 	var tween = create_tween().set_parallel(true)
 	tween.tween_property($Sprite2D, "scale", Vector2(1.0, 1.0), 0.1)
-	tween.tween_property($Sprite2D, "modulate", Color(1, 1, 1), 0.1)
+	if is_hinted:
+		tween.tween_property($Sprite2D, "modulate", Color(1.5, 1.5, 0.5), 0.1) # Yellow tint
+	else:
+		tween.tween_property($Sprite2D, "modulate", Color(1, 1, 1), 0.1)
 
 # Set piece them when initializing
 
@@ -27,6 +34,14 @@ func set_tile_type(note_name: String, texture: Texture2D):
 	
 	type = note_name
 	$NoteLabel.text = note_name
+
+# Highlight tile as a hint
+func set_hint_highlight(enabled: bool):
+	is_hinted = enabled
+	if enabled:
+		$Sprite2D.modulate = Color(1.5, 1.5, 0.5) # Yellow tint
+	else:
+		$Sprite2D.modulate = Color(1, 1, 1)
 
 # Letting the main code know when a tile has been pressed
 
