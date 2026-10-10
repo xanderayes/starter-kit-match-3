@@ -23,10 +23,10 @@ func _on_mouse_exited():
 
 # Set piece them when initializing
 
-func set_tile_type(id: String, texture: Texture2D):
+func set_tile_type(note_name: String, texture: Texture2D):
 	
-	type = id
-	$Sprite2D.texture = texture
+	type = note_name
+	$NoteLabel.text = note_name
 
 # Letting the main code know when a tile has been pressed
 

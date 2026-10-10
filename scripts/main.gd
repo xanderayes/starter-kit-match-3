@@ -12,6 +12,25 @@ extends Node2D
 @export_subgroup("Tiles")
 @export var textures: Array[Texture2D] 
 
+# Musical notes
+const NOTES = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
+
+# Major chords (root, major third, perfect fifth)
+const MAJOR_CHORDS = {
+	"A": ["A", "C#", "E"],
+	"A#": ["A#", "D", "F"],
+	"B": ["B", "D#", "F#"],
+	"C": ["C", "E", "G"],
+	"C#": ["C#", "F", "G#"],
+	"D": ["D", "F#", "A"],
+	"D#": ["D#", "G", "A#"],
+	"E": ["E", "G#", "B"],
+	"F": ["F", "A", "C"],
+	"F#": ["F#", "A#", "C#"],
+	"G": ["G", "B", "D"],
+	"G#": ["G#", "C", "D#"]
+} 
+
 @export_subgroup("Cursors")
 @export var open_hand_cursor: Texture2D
 @export var closed_hand_cursor: Texture2D
@@ -67,15 +86,15 @@ func setup_grid_array():
 func spawn_at(x, y):
 	
 	var created_piece = tile_scene.instantiate() 
-	var random_index = randi_range(0, textures.size() - 1)
-	
+	var random_note = NOTES[randi() % NOTES.size()]
+
 	container.add_child(created_piece) 
-	
-	created_piece.set_tile_type(str(random_index), textures[random_index]) 
+
+	created_piece.set_tile_type(random_note, textures[0]) 
 	created_piece.tile_pressed.connect(_on_tile_pressed) 
 	created_piece.grid_position = Vector2i(x, y) 
 	created_piece.position = grid_to_pixel(x, y) 
-	
+
 	grid[x][y] = created_piece
 
 # Interaction
@@ -151,16 +170,29 @@ func find_matches() -> Array:
 	for y in height:
 		for x in range(width - 2):
 			var p1 = grid[x][y]; var p2 = grid[x+1][y]; var p3 = grid[x+2][y]
-			if p1 and p2 and p3 and p1.type == p2.type and p1.type == p3.type:
+			if p1 and p2 and p3 and is_major_chord(p1.type, p2.type, p3.type):
 				for p in [p1, p2, p3]: matched_dict[p] = true
 
 	for x in width:
 		for y in range(height - 2):
 			var p1 = grid[x][y]; var p2 = grid[x][y+1]; var p3 = grid[x][y+2]
-			if p1 and p2 and p3 and p1.type == p2.type and p1.type == p3.type:
+			if p1 and p2 and p3 and is_major_chord(p1.type, p2.type, p3.type):
 				for p in [p1, p2, p3]: matched_dict[p] = true
 
 	return matched_dict.keys()
+
+# Check if three notes form a major chord (order doesn't matter)
+func is_major_chord(note1: String, note2: String, note3: String) -> bool:
+	var notes = [note1, note2, note3]
+	notes.sort()
+	
+	for chord in MAJOR_CHORDS.values():
+		var chord_notes = chord.duplicate()
+		chord_notes.sort()
+		if notes == chord_notes:
+			return true
+	
+	return false
 
 func process_board_state():
 	

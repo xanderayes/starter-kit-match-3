@@ -13,6 +13,17 @@ script = ExtResource("1_hisf2")
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=811763384]
 texture = ExtResource("2_hisf2")
 
+[node name="NoteLabel" type="Label" parent="."]
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 48
+text = "C"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=12865723]
 shape = SubResource("RectangleShape2D_0e48y")
 
