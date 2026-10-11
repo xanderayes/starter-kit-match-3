@@ -204,6 +204,25 @@ func is_major_chord(note1: String, note2: String, note3: String) -> bool:
 	
 	return false
 
+# Identify which major chord is formed by the matched pieces
+func identify_chord(matches: Array) -> String:
+	if matches.size() < 3:
+		return "C"  # Default fallback
+	
+	var notes = []
+	for piece in matches:
+		notes.append(piece.type)
+	
+	notes.sort()
+	
+	for chord_name in MAJOR_CHORDS.keys():
+		var chord_notes = MAJOR_CHORDS[chord_name].duplicate()
+		chord_notes.sort()
+		if notes == chord_notes:
+			return chord_name
+	
+	return "C"  # Default fallback if no match found
+
 func process_board_state():
 	
 	combo_count = 0 
@@ -211,7 +230,11 @@ func process_board_state():
 	
 	while matches.size() > 0:
 		combo_count += 1
-		Audio.play("res://sounds/tile-match.ogg", true, 1.0 + (combo_count * 0.1))
+		
+		# Identify which chord was matched
+		var chord_name = identify_chord(matches)
+		var chord_path = "res://sounds/chords/major/" + chord_name + ".mp3"
+		Audio.play(chord_path, true, 1.0 + (combo_count * 0.1))
 		
 		for piece in matches:
 			var effect = sparkles_scene.instantiate()
